@@ -1,0 +1,43 @@
+#!/local/python-2.7.1/bin/python  
+'''csfgrab: return only the most significant CSFs from a given input list.
+
+Usage:
+  csfgrab [<x>] 
+
+Take a CSF list from standard input and return a sorted list containing
+only the most significant CSFs by coefficient.
+If invoked with a positive integer x, sort the list and return the x most
+significant CSFs. If invoked with a positive real number x, sort the list
+and return all CSFs with coef >= x. Otherwise just sort and return the
+input list.
+'''
+
+from docopt import docopt
+import sys
+from csf_tools import parse_CSFList
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__)
+    x = arguments['<x>']
+    if x:
+        try:
+            x = float(x)
+        except:
+            print 'Invalid argument: ', x
+            print '(could not cast to float)'
+            sys.exit(1)
+    else:
+        x = -0.1 # can't be 0.0 because that would be interpreted as an int
+
+    csfs = parse_CSFList(sys.stdin)
+    csfs = sorted(csfs, key=lambda csf: abs(csf.coef), reverse=True)
+
+    if x == int(x):
+        # keep the x most significant CSFs
+        csfs = csfs[:int(x)]
+    else:
+        # keep CSFs with coef >= x
+        csfs = [c for c in csfs if abs(c.coef) >= x]
+    for c in csfs:
+        # 'print' inserts unwanted newlines
+        sys.stdout.write(c.__str__())
