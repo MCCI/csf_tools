@@ -1,0 +1,57 @@
+#!/local/python-2.7.1/bin/python  
+'''ciview: print CSFs in a more intuitive way.
+
+Usage:
+  ciview
+
+Take a CSF list from standard input and print each CSF on its own line,
+with a more visual representation of the occupations than MCCI's standard
+32-bit integer lists.
+The output can be read as follows:
+Z means a doubly occupied level
+> means a level singly occupied by a spin up electron
+> means a level singly occupied by a spin down electron
+| means an empty level'''
+
+from docopt import docopt
+import sys
+from csf_tools import parse_CSFList
+
+def twos_complement(num):
+    # (num + 2**32) % 2**32 is the actual formula, we add 2**34 to make
+    # python print leading zeros, and then only print the last 32 chars
+    return bin(((num + 2**32) % 2**32) + 2**34)[-32:]
+
+def stringify_occlist(csf):
+    s = []
+    for a, b in zip(csf.alphas, csf.betas):
+        # reverse because of little-endian architecture!
+        bits = zip(twos_complement(int(a)), twos_complement(int(b)))
+        bits.reverse()
+        for b in bits:
+            if b[0] == b[1] == '0':
+                s.append('|') # unocc. orbital
+            elif b[0] == '1' and b[1] == '0':
+                s.append('>') # singly occ. spin up
+            elif b[0] == '0' and b[1] == '1':
+                s.append('<') # singly occ. spin down
+            elif b[0] == b[1] == '1':
+                s.append('Z') # doubly occ. orbital
+    return ''.join(s)
+
+def pprint_CSF(csf):
+    if type(csf.coef) == complex:
+        ls = ['{0:6d}  {1: 6.2E} {2: 6.2E}  '\
+              .format(csf.id, csf.coef.real, csf.coef.imag)]
+    else:
+        ls = ['{0:6d}  {1: 6.2E}  '.format(csf.id, csf.coef)]
+    ls.append(stringify_occlist(csf))
+    ls.append('\n')
+    return ''.join(ls)
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__)
+    csfs = parse_CSFList(sys.stdin)
+    for c in csfs:
+        # 'print' inserts unwanted newlines
+        sys.stdout.write(pprint_CSF(c))
