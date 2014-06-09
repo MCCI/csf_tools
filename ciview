@@ -31,6 +31,13 @@ Z means a doubly occupied level
 )
 
 parser.add_argument('-d','--docopt',help='use docopt',action='store_true')
+parser.add_argument('-c','--chain',
+    help='reorder orbitals for a chain (no p or d orbitals) of length N with d2h symmetry',
+    type=int,
+    dest='N',
+    default=0)
+
+
 args = parser.parse_args()
 
 if args.docopt:
@@ -61,7 +68,18 @@ def stringify_occlist(csf):
                 s.append('-') # singly occ. spin down
             elif b[0] == b[1] == '1':
                 s.append('Z') # doubly occ. orbital
-    return ''.join(s)
+
+    if args.n > 0: # Reorder orbitals by energy
+        d2h = []
+        for i in range(args.n):
+            if i%2==0:
+                d2h.append(s[i/2])
+            else:
+                d2h.append(s[(args.n+i)/2])
+        return ''.join(d2h)
+    else:
+        return ''.join(s)
+
 
 def pprint_CSF(csf):
     if type(csf.coef) == complex:
