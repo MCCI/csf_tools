@@ -1,21 +1,44 @@
 #!/local/python-2.7.1/bin/python  
-'''ciview: print CSFs in a more intuitive way.
+
+'''
+ciview: print CSFs in a more intuitive way.
 
 Usage:
-  ciview
+  ciview -h
+'''
 
-Take a CSF list from standard input and print each CSF on its own line,
-with a more visual representation of the occupations than MCCI's standard
-32-bit integer lists.
-The output can be read as follows:
+import argparse
+import textwrap
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent('''\
+        
+Take a CSF list from standard input and print each CSF on its
+own line, with a more visual representation of the occupations 
+than MCCI's standard 32-bit integer lists.The output can be 
+read as follows:
+
 Z means a doubly occupied level
-> means a level singly occupied by a spin up electron
-> means a level singly occupied by a spin down electron
-| means an empty level'''
 
-from docopt import docopt
++ means a level singly occupied by a spin up electron
+
+- means a level singly occupied by a spin down electron
+
+| means an empty level
+
+        ''')
+)
+
+parser.add_argument('-d','--docopt',help='use docopt',action='store_true')
+args = parser.parse_args()
+
+if args.docopt:
+    from docopt import docopt
+
 import sys
 from csf_tools import parse_CSFList
+
 
 def twos_complement(num):
     # (num + 2**32) % 2**32 is the actual formula, we add 2**34 to make
@@ -32,9 +55,9 @@ def stringify_occlist(csf):
             if b[0] == b[1] == '0':
                 s.append('|') # unocc. orbital
             elif b[0] == '1' and b[1] == '0':
-                s.append('>') # singly occ. spin up
+                s.append('+') # singly occ. spin up
             elif b[0] == '0' and b[1] == '1':
-                s.append('<') # singly occ. spin down
+                s.append('-') # singly occ. spin down
             elif b[0] == b[1] == '1':
                 s.append('Z') # doubly occ. orbital
     return ''.join(s)
@@ -50,7 +73,8 @@ def pprint_CSF(csf):
     return ''.join(ls)
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__)
+    if args.docopt:
+        arguments = docopt(__doc__)
     csfs = parse_CSFList(sys.stdin)
     for c in csfs:
         # 'print' inserts unwanted newlines
