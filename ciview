@@ -34,7 +34,7 @@ parser.add_argument('-d','--docopt',help='use docopt',action='store_true')
 parser.add_argument('-c','--chain',
     help='reorder orbitals for a chain (no p or d orbitals) of length N with d2h symmetry',
     type=int,
-    dest='N',
+    dest='n',
     default=0)
 
 
