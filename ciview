@@ -44,7 +44,6 @@ if args.docopt:
     from docopt import docopt
 
 import sys
-import select
 from csf_tools import parse_CSFList
 
 
@@ -96,10 +95,7 @@ if __name__ == '__main__':
         arguments = docopt(__doc__)
         
     #Check stdin for data
-    if select.select([sys.stdin,],[],[],0.0)[0]:
-        csfs = parse_CSFList(sys.stdin)
-    else:
-        sys.exit("No input data.  Use < to specify a civ file")
+    csfs = parse_CSFList(sys.stdin)
 
     for c in csfs:
         # 'print' inserts unwanted newlines
